@@ -1,0 +1,101 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "webSiteName": {
+            "type": "string",
+            "maxLength": 15,
+            "metadata": {
+                "description": "Name of the Web App."
+            }
+        },
+        "skuName": {
+            "type": "string",
+            "defaultValue": "F1",
+            "allowedValues": [
+                "F1",
+                "D1",
+                "B1",
+                "B2",
+                "B3",
+                "S1",
+                "S2",
+                "S3",
+                "P1",
+                "P2",
+                "P3",
+                "P4"
+            ],
+            "metadata": {
+                "description": "Describes plan's pricing tier and instance size. Check details at https://azure.microsoft.com/en-us/pricing/details/app-service/"
+            }
+        },
+        "serviceBusNamespaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Service Bus Namespace"
+            }
+        },
+        "serviceBusQueueName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Service Bus Queue"
+            }
+        },
+    },
+    "variables": {
+        "hostingPlanName": "[concat('hostingplan', uniqueString(resourceGroup().id))]",
+        "identityResourceId": "[concat(resourceId('Microsoft.Web/sites', parameters('webSiteName')),'/providers/Microsoft.ManagedIdentity/Identities/default')]",
+		"webAppVersion": "2016-03-01",
+		"sbVersion": "2017-04-01"
+    },
+    "resources": [{
+        "apiVersion": "[variables('webAppVersion')]",
+        "name": "[variables('hostingPlanName')]",
+        "type": "Microsoft.Web/serverfarms",
+        "location": "[resourceGroup().location]",
+        "tags": {
+            "displayName": "HostingPlan"
+        },
+        "sku": {
+            "name": "[parameters('skuName')]",
+            "capacity": 1
+        },
+        "properties": {
+            "name": "[variables('hostingPlanName')]"
+        }
+    }, {
+        "apiVersion": "[variables('webAppVersion')]",
+        "name": "[parameters('webSiteName')]",
+        "type": "Microsoft.Web/sites",
+        "location": "[resourceGroup().location]",
+        "identity": {
+            "type": "SystemAssigned"
+        },
+        "dependsOn": [
+            "[variables('hostingPlanName')]"
+        ],
+        "tags": {
+            "[concat('hidden-related:', resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName')))]": "empty",
+            "displayName": "Website"
+        },
+        "properties": {
+            "name": "[parameters('webSiteName')]",
+            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
+        }
+    }, {
+        "apiVersion": "[variables('sbVersion')]",
+        "name": "[parameters('serviceBusNamespaceName')]",
+        "type": "Microsoft.ServiceBus/namespaces",
+        "location": "[resourceGroup().location]",
+        "properties": {},
+        "resources": [{
+            "apiVersion": "[variables('sbVersion')]",
+            "name": "[parameters('serviceBusQueueName')]",
+            "type": "Queues",
+            "dependsOn": [
+                "[concat('Microsoft.ServiceBus/namespaces/', parameters('serviceBusNamespaceName'))]"
+            ]
+        }]
+    }]
+}
