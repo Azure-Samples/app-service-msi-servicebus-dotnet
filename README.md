@@ -93,25 +93,5 @@ As a result, you did not have to explicitly create and handle a Service Bus shar
 
 ## Troubleshooting
 
-### Common issues during local development:
+Please see the [troubleshooting section](https://docs.microsoft.com/en-us/azure/key-vault/service-to-service-authentication#appauthentication-troubleshooting) of the AppAuthentication library documentation for troubleshooting of common issues.
 
-1. Azure CLI is not installed, or you are not logged in, or you do not have the latest version. 
-Run **az account get-access-token** to see if Azure CLI shows a token for you. If it says no such program found, please install Azure CLI 2.0. If you have installed it, you may be prompted to login. 
-
-2. AzureServiceTokenProvider cannot find the path for Azure CLI.
-AzureServiceTokenProvider finds Azure CLI at its default install locations. If it cannot find Azure CLI, please set environment variable **AzureCLIPath** to the Azure CLI installation folder. AzureServiceTokenProvider will add the environment variable to the Path environment variable.
-
-3. You are logged into Azure CLI using multiple accounts, or the same account has access to subscriptions in multiple tenants. You get an Access Denied error when trying to make calls to Service Bus during local development. 
-Using Azure CLI, set the default subscription to one which has the account you want use, and is in the same tenant as your Service Bus Namespace: **az account set --subscription [subscription-id]**. If no output is seen, then it succeeded. Verify the right account is now the default using **az account list**.
-
-### Common issues when deployed to Azure App Service:
-
-1. MSI is not setup on the App Service. 
-
-Check the environment variables MSI_ENDPOINT and MSI_SECRET exist using [Kudu debug console](https://azure.microsoft.com/en-us/resources/videos/super-secret-kudu-debug-console-for-azure-web-sites/). If these environment variables do not exist, MSI is not enabled on the App Service. 
-
-### Common issues across environments:
-
-1. System.UnauthorizedAccessException: Failed to authorize request after RBAC check. 
-
-The principal used does not have access to the Service Bus Namespace. Grant either your user account or the App Service's MSI "Contributor" access to the Service Bus Namespace, depending on whether you are running the sample on your local development machine or deployed in Azure to your App Service.
