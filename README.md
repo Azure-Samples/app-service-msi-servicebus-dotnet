@@ -27,9 +27,7 @@ Use the "Deploy to Azure" button to deploy an ARM template to create the followi
 1. App Service with MSI.
 2. Service Bus Namespace with a Service Bus Queue
 
-Be sure to create a Service Bus Namespace in one of the Azure regions that have preview support for role-based access control (RBAC): **East US**, **East US 2**, or **West Europe**. 
-
-After using the ARM template to deploy the needed resources, review the resources created using the Azure portal. You should see an App Service and a Service Bus Namespace that contains a Service Bus Queue. You can verify your App Service has Managed Service Identity (MSI) enabled by navigating to the App Service, clicking on "Managed service identity (Preview)" in the left-hand menu, and verifying "Register with Azure Active Directory" is set to "on".
+After using the ARM template to deploy the needed resources, review the resources created using the Azure portal. You should see an App Service and a Service Bus Namespace that contains a Service Bus Queue. You can verify your App Service has Managed Service Identity (MSI) enabled by navigating to the App Service, clicking on "Managed service identity" in the left-hand menu, and verifying "Register with Azure Active Directory" is set to "on".
 
 ## Step 2: Grant yourself access to the Service Bus Namespace
 Using the Azure Portal, go to the Service Bus Namespace's access control tab, and grant yourself **Contributor** access to the Service Bus Namespace. This will allow you to run the application on your local development machine (**Note**: There is currently an issue where inherited permissions will not grant access; you must explicity add permissions here).
