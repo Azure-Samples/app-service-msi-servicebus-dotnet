@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
+using Azure.Messaging.ServiceBus;
 using Microsoft.Azure.ServiceBus.Primitives;
 using Microsoft.Extensions.Options;
 using System;
@@ -58,24 +59,31 @@ namespace WebAppServiceBus.Controllers
             {
                 return RedirectToAction("Index");
             }
-
-            var tokenProvider = TokenProvider.CreateManagedServiceIdentityTokenProvider();
-            QueueClient sendClient = new QueueClient($"sb://{Config.Namespace}.servicebus.windows.net/", Config.Queue, tokenProvider);
-            await sendClient.SendAsync(new Message(Encoding.UTF8.GetBytes(messageInfo.MessageToSend)));
-            await sendClient.CloseAsync();
+            string connectionString = Config.NamespaceConnectionString;
+            string queueName = Config.Queue;
+            var client = new ServiceBusClient(connectionString);
+            ServiceBusSender sender = client.CreateSender(queueName);
+            ServiceBusMessage message = new ServiceBusMessage(messageInfo.MessageToSend);
+            await sender.SendMessageAsync(message);
+            await sender.CloseAsync();
 
             return RedirectToAction("Index");
         }
 
         [HttpPost]
-        public ActionResult Receive()
+        public async Task<ActionResult> Receive()
         {
             ServiceBusMessageData messageInfo = new ServiceBusMessageData();
 
-            List<string> receivedMessages = ReceivedMessageStore.GetReceivedMessages();
-            if (receivedMessages.Count > 0)
+            string connectionString = "Endpoint=sb://test0412.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=Lp/kwQRPp38LuGf+dCqPXhn0vKQ1BAS+CZ6SDrw7bTs=";
+            string queueName = "zedtestqueues2";
+            var client = new ServiceBusClient(connectionString);
+            ServiceBusReceiver receiver = client.CreateReceiver(queueName);
+            ServiceBusReceivedMessage receivedMessage = await receiver.ReceiveMessageAsync();
+
+            if ( receivedMessage.Body.ToString() != null )
             {
-                messageInfo.MessagesReceived = string.Join(Environment.NewLine, receivedMessages);
+                messageInfo.MessagesReceived = receivedMessage.Body.ToString();
             }
             else
             {
