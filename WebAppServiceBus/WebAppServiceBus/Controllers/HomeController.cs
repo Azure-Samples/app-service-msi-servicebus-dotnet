@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Primitives;
+using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Options;
-using System;
 using System.Collections.Generic;
+using System;
 using System.Diagnostics;
-using System.Text;
 using System.Threading.Tasks;
 using WebAppServiceBus.Models;
 
@@ -18,7 +16,6 @@ namespace WebAppServiceBus.Controllers
         public HomeController(IOptions<ServiceBusConfiguration> serviceBusConfig)
         {
             Config = serviceBusConfig.Value;
-            ReceivedMessageStore.Initialize(Config);
         }
 
         public IActionResult Index()
@@ -58,30 +55,32 @@ namespace WebAppServiceBus.Controllers
             {
                 return RedirectToAction("Index");
             }
-
-            var tokenProvider = TokenProvider.CreateManagedServiceIdentityTokenProvider();
-            QueueClient sendClient = new QueueClient($"sb://{Config.Namespace}.servicebus.windows.net/", Config.Queue, tokenProvider);
-            await sendClient.SendAsync(new Message(Encoding.UTF8.GetBytes(messageInfo.MessageToSend)));
-            await sendClient.CloseAsync();
+            string connectionString = Config.NamespaceConnectionString;
+            string queueName = Config.Queue;
+            var client = new ServiceBusClient(connectionString);
+            ServiceBusSender sender = client.CreateSender(queueName);
+            ServiceBusMessage message = new ServiceBusMessage(messageInfo.MessageToSend);
+            await sender.SendMessageAsync(message);
+            await sender.CloseAsync();
 
             return RedirectToAction("Index");
         }
 
         [HttpPost]
-        public ActionResult Receive()
+        public  ActionResult Receive()
         {
+            ReceivedMessageStore.InitializeMessage(Config);
             ServiceBusMessageData messageInfo = new ServiceBusMessageData();
 
             List<string> receivedMessages = ReceivedMessageStore.GetReceivedMessages();
             if (receivedMessages.Count > 0)
             {
-                messageInfo.MessagesReceived = string.Join(Environment.NewLine, receivedMessages);
+                messageInfo.MessagesReceived = receivedMessages[0];
             }
             else
             {
                 messageInfo.MessagesReceived = "No messages from queue received yet!";
             }
-
             return View("Index", messageInfo);
         }
     }

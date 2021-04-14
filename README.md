@@ -44,24 +44,54 @@ To grant access:
 ## Step 3: Clone the repo 
 Clone the repo to your development machine. 
 
-The project has two relevant Nuget packages:
-1. Microsoft.Azure.Services.AppAuthentication - makes it easy to fetch access tokens for Service-to-Azure-Service authentication scenarios. 
-2. Microsoft.Azure.ServiceBus - contains methods for interacting with Service Bus. 
+For the Service Bus client library to interact with a queue or topic, it will need to understand how to connect and authorize with it.  The easiest means for doing so is to use a connection string, which is created automatically when creating a Service Bus namespace.  If you aren't familiar with shared access policies in Azure, you may wish to follow the step-by-step guide to [get a Service Bus connection string](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-quickstart-topics-subscriptions-portal#get-the-connection-string).
 
-The relevant code is in WebAppServiceBus/WebAppServiceBus/Controllers/HomeController.cs file. The **Send** method will create an instance of a Service Bus QueueClient, configured to use a ManagedServiceIdentityTokenProvider. This TokenProvider's implementation uses the AzureServiceTokenProvider found in the Microsoft.Azure.Services.AppAuthentication library. AzureServiceTokenProvider will follow a set number of different methods, depending on the environment, to get an access token. Please refer to the AppAuthentication library's documentation for [local development authentication](https://docs.microsoft.com/en-us/azure/key-vault/service-to-service-authentication#local-development-authentication) to see more detail.
+Shared access policies in queue is important too.
+
+To create a shared access policies in queue:
+1.	Click the queue you just created.
+2.	Choose the Shared access policies under Settings.
+3.	Click on "Add", input your Policy name, then select "Send" and "Listen".
+4.	Click on the "Create".
+
+Once you have a connection string, you can authenticate your client with it.
+
+```C# Snippet:ServiceBusAuthConnString
+// Create a ServiceBusClient that will authenticate using a connection string
+string connectionString = "<connection_string>";
+ServiceBusClient client = new ServiceBusClient(connectionString);
+```
+
+Message sending is performed using the `ServiceBusSender`. Receiving is performed using the `ServiceBusReceiver`.
 
 ```csharp    
-var tokenProvider = TokenProvider.CreateManagedServiceIdentityTokenProvider();
-QueueClient sendClient = new QueueClient($"sb://{Config.Namespace}.servicebus.windows.net/", Config.Queue, tokenProvider);
-await sendClient.SendAsync(new Message(Encoding.UTF8.GetBytes(messageInfo.MessageToSend)));
-await sendClient.CloseAsync();
+string connectionString = Config.NamespaceConnectionString;
+string queueName = Config.Queue;
+var client = new ServiceBusClient(connectionString);
+
+// create the sender
+ServiceBusSender sender = client.CreateSender(queueName);
+
+// create a message that we can send.
+ServiceBusMessage message = new ServiceBusMessage(messageInfo.MessageToSend);
+
+// send the message
+await sender.SendMessageAsync(message);
+
+// create a receiver that we can use to receive the message
+ServiceBusReceiver receiver = client.CreateReceiver(queueName);
+
+// the received message is a different type as it contains some service set properties
+ServiceBusReceivedMessage receivedMessage = await receiver.ReceiveMessageAsync();
+
 ```
 
 ## Step 4: Update the Service Bus Namespace and Service Bus Queue names
-In the Web.config file, change the Service Bus Namespace and Queue to the ones you just created. Replace **ServiceBusNamespace** with the name of your Service Bus Namespace and **ServiceBusQueue** with the name of your Service Bus Queue.
+In the appsettings.json file, change the values of parameters NamespaceConnectionString and Queue to the ones you just created.
+
 
 ## Step 5: Run the application on your local development machine
-When running your sample, the previously-configured QueueClient will use the ManagedServiceIdentityTokenProvider, which uses the developer's security context to get a token to authenticate to Service Bus. This removes the need to create a Service Bus shared access key and share it with the development team. It also prevents credentials from being checked in to source code. For local development, the ManagedServiceIdentityTokenProvider will use **Visual Studio**, **Azure CLI**, or **Active Directory Integrated Authentication** to authenticate to Azure AD to get a token. That token will be used to both send and receive data from your Service Bus Queue.
+When running your sample, it will need to understand how to connect and authorize with it. The easiest means for doing so is to use a connection string, which is created automatically when creating a Service Bus namespace. For local development, the connectionString  will use **Visual Studio**, **Azure CLI**, or **Active Directory Integrated Authentication** to authenticate to Azure AD to get a token. That token will be used to both send and receive data from your Service Bus Queue.
 
 Visual Studio authentication will work if the following conditions are met:
  1. You have installed [Visual Studio 2017 v15.6](https://blogs.msdn.microsoft.com/visualstudio/2017/12/07/visual-studio-2017-version-15-6-preview/) or later.
@@ -85,13 +115,13 @@ Follow the steps in Step 2 used to grant yourself "Contributor" access to the Se
 
 ## Step 7: Deploy the Web App to Azure
 Use any of the methods outlined on [Deploy your app to Azure App Service](https://docs.microsoft.com/en-us/azure/app-service-web/web-sites-deploy) to publish the Web App to Azure. 
-After you deploy it, browse to the web app. You should be able to send and receive data on your Service Bus Namespace on the web page as you did when you locally deployed the web app in Step 5. However, different from Step 5, the QueueClient using the ManagedServiceIdentityTokenProvider will use the web app's own Managed Service Identity (MSI) to authenticate to Service Bus instead of your local developer context. This did not require any code changes between local development and being published to Azure.
+After you deploy it, browse to the web app. You should be able to send and receive data on your Service Bus Namespace on the web page as you did when you locally deployed the web app in Step 5. 
 
 ## Summary
 The web app was successfully able to send and receive data on your Service Bus Namespace using your developer account during development, and using MSI when deployed to Azure, without any code change between local development environment and Azure. 
 As a result, you did not have to explicitly create and handle a Service Bus shared access key to authenticate to and call Service Bus. You do not have to worry about renewing the MSI's credentials either, since MSI takes care of that.  
 
-## Troubleshooting
+## Note
 
-Please see the [troubleshooting section](https://docs.microsoft.com/en-us/azure/key-vault/service-to-service-authentication#appauthentication-troubleshooting) of the AppAuthentication library documentation for troubleshooting of common issues.
+This sample uses the [Azure.Messaging.ServiceBus](https://www.nuget.org/packages/Azure.Messaging.ServiceBus) package. The same sample using the legacy package Microsoft.Azure.ServiceBus can be found at [Azure-Samples/app-service-msi-servicebus-dotnet at 03be4e05b5803e464d416b66fd729d23bd4220fb (github.com)](https://github.com/Azure-Samples/app-service-msi-servicebus-dotnet/tree/03be4e05b5803e464d416b66fd729d23bd4220fb)
 

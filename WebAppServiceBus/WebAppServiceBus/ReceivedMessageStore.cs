@@ -1,5 +1,4 @@
-﻿using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Primitives;
+﻿using Azure.Messaging.ServiceBus;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,30 +8,13 @@ namespace WebAppServiceBus
 {
     public static class ReceivedMessageStore
     {
-        private static QueueClient _receiveClient = null;
         private static List<string> _receivedMessages = new List<string>();
 
-        public static void Initialize(ServiceBusConfiguration config)
+        public static async void InitializeMessage(ServiceBusConfiguration config)
         {
-            if (_receiveClient != null)
-            {
-                return;
-            }
-
-            TokenProvider tokenProvider = TokenProvider.CreateManagedServiceIdentityTokenProvider();
-
-            _receiveClient = new QueueClient($"sb://{config.Namespace}.servicebus.windows.net/", config.Queue, tokenProvider, receiveMode: ReceiveMode.ReceiveAndDelete);
-            _receiveClient.RegisterMessageHandler(
-                (message, cancellationToken) =>
-                {
-                    _receivedMessages.Add($"MessageId:{message.MessageId}, Seq#:{message.SystemProperties.SequenceNumber}, data:{Encoding.UTF8.GetString(message.Body)}");
-                    return Task.CompletedTask;
-                },
-                (exceptionEvent) =>
-                {
-                    _receivedMessages.Add($"Exception: \"{exceptionEvent.Exception.Message}\" {exceptionEvent.ExceptionReceivedContext.EntityPath}");
-                    return Task.CompletedTask;
-                });
+            ServiceBusReceiver receiver = new ServiceBusClient(config.NamespaceConnectionString).CreateReceiver(config.Queue);
+            ServiceBusReceivedMessage receivedMessage = await receiver.ReceiveMessageAsync();
+            _receivedMessages.Add(receivedMessage.Body.ToString());
         }
 
         public static List<string> GetReceivedMessages()
