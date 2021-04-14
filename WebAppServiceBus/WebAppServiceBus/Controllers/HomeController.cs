@@ -1,12 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.ServiceBus;
 using Azure.Messaging.ServiceBus;
-using Microsoft.Azure.ServiceBus.Primitives;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using System.Threading.Tasks;
 using WebAppServiceBus.Models;
 
@@ -75,8 +70,8 @@ namespace WebAppServiceBus.Controllers
         {
             ServiceBusMessageData messageInfo = new ServiceBusMessageData();
 
-            string connectionString = "Endpoint=sb://test0412.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=Lp/kwQRPp38LuGf+dCqPXhn0vKQ1BAS+CZ6SDrw7bTs=";
-            string queueName = "zedtestqueues2";
+            string connectionString = Config.NamespaceConnectionString;
+            string queueName = Config.Queue;
             var client = new ServiceBusClient(connectionString);
             ServiceBusReceiver receiver = client.CreateReceiver(queueName);
             ServiceBusReceivedMessage receivedMessage = await receiver.ReceiveMessageAsync();
@@ -89,7 +84,6 @@ namespace WebAppServiceBus.Controllers
             {
                 messageInfo.MessagesReceived = "No messages from queue received yet!";
             }
-
             return View("Index", messageInfo);
         }
     }
