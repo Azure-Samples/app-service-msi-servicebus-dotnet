@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Options;
+using System.Collections.Generic;
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using WebAppServiceBus.Models;
@@ -14,7 +16,6 @@ namespace WebAppServiceBus.Controllers
         public HomeController(IOptions<ServiceBusConfiguration> serviceBusConfig)
         {
             Config = serviceBusConfig.Value;
-            ReceivedMessageStore.Initialize(Config);
         }
 
         public IActionResult Index()
@@ -66,19 +67,15 @@ namespace WebAppServiceBus.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Receive()
+        public  ActionResult Receive()
         {
+            ReceivedMessageStore.InitializeMessage(Config);
             ServiceBusMessageData messageInfo = new ServiceBusMessageData();
 
-            string connectionString = Config.NamespaceConnectionString;
-            string queueName = Config.Queue;
-            var client = new ServiceBusClient(connectionString);
-            ServiceBusReceiver receiver = client.CreateReceiver(queueName);
-            ServiceBusReceivedMessage receivedMessage = await receiver.ReceiveMessageAsync();
-
-            if ( receivedMessage.Body.ToString() != null )
+            List<string> receivedMessages = ReceivedMessageStore.GetReceivedMessages();
+            if (receivedMessages.Count > 0)
             {
-                messageInfo.MessagesReceived = receivedMessage.Body.ToString();
+                messageInfo.MessagesReceived = receivedMessages[0];
             }
             else
             {

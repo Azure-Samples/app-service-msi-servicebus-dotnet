@@ -10,7 +10,7 @@ namespace WebAppServiceBus
     {
         private static List<string> _receivedMessages = new List<string>();
 
-        public static async void Initialize(ServiceBusConfiguration config)
+        public static async void InitializeMessage(ServiceBusConfiguration config)
         {
             ServiceBusReceiver receiver = new ServiceBusClient(config.NamespaceConnectionString).CreateReceiver(config.Queue);
             ServiceBusReceivedMessage receivedMessage = await receiver.ReceiveMessageAsync();
