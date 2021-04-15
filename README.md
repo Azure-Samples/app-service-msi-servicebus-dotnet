@@ -6,6 +6,8 @@ author: nonik0
 
 # Use Service Bus from App Service with Managed Service Identity
 
+> Note! This sample uses the [Azure.Messaging.ServiceBus](https://www.nuget.org/packages/Azure.Messaging.ServiceBus) package. The same sample using the legacy package Microsoft.Azure.ServiceBus can be found at [Azure-Samples/app-service-msi-servicebus-dotnet at 03be4e05b5803e464d416b66fd729d23bd4220fb (github.com)](https://github.com/Azure-Samples/app-service-msi-servicebus-dotnet/tree/03be4e05b5803e464d416b66fd729d23bd4220fb)
+
 ## Background
 For authenticating from applications to Service Bus, the approach so far involved creating an application and an associated shared access key in Service Bus, and then using that shared access key to authenticate directly with Service Bus. While this approach works well, there are two shortcomings:
 1. The application's shared access key is typically hard coded in source code or configuration files. Developers tend to push the code to source repositories as-is, which leads to credentials in source.
@@ -120,8 +122,3 @@ After you deploy it, browse to the web app. You should be able to send and recei
 ## Summary
 The web app was successfully able to send and receive data on your Service Bus Namespace using your developer account during development, and using MSI when deployed to Azure, without any code change between local development environment and Azure. 
 As a result, you did not have to explicitly create and handle a Service Bus shared access key to authenticate to and call Service Bus. You do not have to worry about renewing the MSI's credentials either, since MSI takes care of that.  
-
-## Note
-
-This sample uses the [Azure.Messaging.ServiceBus](https://www.nuget.org/packages/Azure.Messaging.ServiceBus) package. The same sample using the legacy package Microsoft.Azure.ServiceBus can be found at [Azure-Samples/app-service-msi-servicebus-dotnet at 03be4e05b5803e464d416b66fd729d23bd4220fb (github.com)](https://github.com/Azure-Samples/app-service-msi-servicebus-dotnet/tree/03be4e05b5803e464d416b66fd729d23bd4220fb)
-
