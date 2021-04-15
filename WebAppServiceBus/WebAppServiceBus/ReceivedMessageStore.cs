@@ -13,8 +13,13 @@ namespace WebAppServiceBus
         public static async void InitializeMessage(ServiceBusConfiguration config)
         {
             ServiceBusReceiver receiver = new ServiceBusClient(config.NamespaceConnectionString).CreateReceiver(config.Queue);
+
             ServiceBusReceivedMessage receivedMessage = await receiver.ReceiveMessageAsync();
+
             _receivedMessages.Add(receivedMessage.Body.ToString());
+
+            await receiver.CompleteMessageAsync(receivedMessage);
+            await receiver.CloseAsync();
         }
 
         public static List<string> GetReceivedMessages()

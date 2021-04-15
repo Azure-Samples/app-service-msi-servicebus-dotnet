@@ -63,13 +63,14 @@ namespace WebAppServiceBus.Controllers
             await sender.SendMessageAsync(message);
             await sender.CloseAsync();
 
+            ReceivedMessageStore.InitializeMessage(Config);
             return RedirectToAction("Index");
+
         }
 
         [HttpPost]
         public  ActionResult Receive()
         {
-            ReceivedMessageStore.InitializeMessage(Config);
             ServiceBusMessageData messageInfo = new ServiceBusMessageData();
 
             List<string> receivedMessages = ReceivedMessageStore.GetReceivedMessages();
