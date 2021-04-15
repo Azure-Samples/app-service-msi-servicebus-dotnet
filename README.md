@@ -46,6 +46,14 @@ Clone the repo to your development machine.
 
 For the Service Bus client library to interact with a queue or topic, it will need to understand how to connect and authorize with it.  The easiest means for doing so is to use a connection string, which is created automatically when creating a Service Bus namespace.  If you aren't familiar with shared access policies in Azure, you may wish to follow the step-by-step guide to [get a Service Bus connection string](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-quickstart-topics-subscriptions-portal#get-the-connection-string).
 
+Shared access policies in queue is important too.
+
+To create a shared access policies in queue:
+1.	Click the queue you just created.
+2.	Choose the Shared access policies under Settings.
+3.	Click on "Add", input your Policy name, then select "Send" and "Listen".
+4.	Click on the "Create".
+
 Once you have a connection string, you can authenticate your client with it.
 
 ```C# Snippet:ServiceBusAuthConnString
