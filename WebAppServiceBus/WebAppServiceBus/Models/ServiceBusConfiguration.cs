@@ -7,7 +7,7 @@ namespace WebAppServiceBus.Models
 {
     public class ServiceBusConfiguration
     {
-        public string NamespaceConnectionString { get; set; }
+        public string Namespace { get; set; }
         public string Queue { get; set; }
     }
 }

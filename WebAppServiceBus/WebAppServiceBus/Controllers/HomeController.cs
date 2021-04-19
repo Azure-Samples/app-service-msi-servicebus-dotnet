@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Azure.Messaging.ServiceBus;
+using Azure.Identity;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System;
@@ -55,15 +56,17 @@ namespace WebAppServiceBus.Controllers
             {
                 return RedirectToAction("Index");
             }
-            string connectionString = Config.NamespaceConnectionString;
-            string queueName = Config.Queue;
-            var client = new ServiceBusClient(connectionString);
-            ServiceBusSender sender = client.CreateSender(queueName);
-            ServiceBusMessage message = new ServiceBusMessage(messageInfo.MessageToSend);
-            await sender.SendMessageAsync(message);
+
+            ServiceBusClient client = new ServiceBusClient(Config.Namespace, new DefaultAzureCredential());
+
+            ServiceBusSender sender = client.CreateSender(Config.Queue);
+            ServiceBusMessage[] messages = new ServiceBusMessage[] {
+                new ServiceBusMessage(messageInfo.MessageToSend)
+            };
+            await sender.SendMessagesAsync(messages);
             await sender.CloseAsync();
 
-            ReceivedMessageStore.InitializeMessage(Config);
+            await ReceivedMessageStore.InitializeAsync(Config);
             return RedirectToAction("Index");
 
         }
