@@ -67,7 +67,6 @@ namespace WebAppServiceBus.Controllers
 
             await _initializeTask.ConfigureAwait(false);
             return RedirectToAction("Index");
-
         }
 
         [HttpPost]
@@ -84,7 +83,7 @@ namespace WebAppServiceBus.Controllers
             {
                 messageInfo.MessagesReceived = "No messages from queue received yet!";
             }
-            
+
             return View("Index", messageInfo);
         }
     }
