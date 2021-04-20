@@ -13,12 +13,16 @@ namespace WebAppServiceBus.Controllers
     public class HomeController : Controller
     {
         public ServiceBusConfiguration Config { get; }
-        public Task _initializeTask;
+        public ServiceBusClient client;
+        private readonly Task startProcessingTask;
 
         public HomeController(IOptions<ServiceBusConfiguration> serviceBusConfig)
         {
             Config = serviceBusConfig.Value;
-            _initializeTask =  ReceivedMessageStore.InitializeAsync(Config);
+
+            client = new ServiceBusClient(Config.Namespace, new DefaultAzureCredential());
+
+            startProcessingTask = ReceivedMessageStore.InitializeAsync(Config, client);
         }
 
         public IActionResult Index()
@@ -58,26 +62,26 @@ namespace WebAppServiceBus.Controllers
             {
                 return RedirectToAction("Index");
             }
-
-            ServiceBusClient client = new ServiceBusClient(Config.Namespace, new DefaultAzureCredential());
+            
             ServiceBusSender sender = client.CreateSender(Config.Queue);
             ServiceBusMessage message = new ServiceBusMessage(messageInfo.MessageToSend);
             await sender.SendMessageAsync(message).ConfigureAwait(false);
             await sender.CloseAsync().ConfigureAwait(false);
-
-            await _initializeTask.ConfigureAwait(false);
+            
             return RedirectToAction("Index");
         }
 
         [HttpPost]
         public ActionResult Receive()
         {
+            startProcessingTask.ConfigureAwait(false);
+
             ServiceBusMessageData messageInfo = new ServiceBusMessageData();
 
             List<string> receivedMessages = ReceivedMessageStore.GetReceivedMessages();
             if (receivedMessages.Count > 0)
             {
-                messageInfo.MessagesReceived = receivedMessages[0];
+                messageInfo.MessagesReceived = string.Join(Environment.NewLine, receivedMessages);
             }
             else
             {

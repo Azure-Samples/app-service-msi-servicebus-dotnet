@@ -56,11 +56,10 @@ string nameSpace = "<service_bus_namespace>";
 ServiceBusClient client = new ServiceBusClient(nameSpace, new DefaultAzureCredential());
 ```
 
-Message sending is performed using the `ServiceBusSender`. Receiving is performed using the `ServiceBusProcessor`.
+The relevant code is in WebAppServiceBus/WebAppServiceBus/Controllers/HomeController.cs file. The constructor will initialize a ServiceBusProcessor that is responsible for processing the messages. The **Send** method will create an instance of a ServiceBusSender, and send a single message.
 
 ```csharp    
-string nameSpace = Config.Namespace;
-string queueName = Config.Queue;
+string queueName = "<service_bus_queueName>";
 ServiceBusClient client = new ServiceBusClient(nameSpace, new DefaultAzureCredential());
 
 // create the sender
@@ -78,12 +77,8 @@ ServiceBusProcessor processor = client.CreateProcessor(queueName, options);
 processor.ProcessMessageAsync += MessageHandler;
 async Task MessageHandler(ProcessMessageEventArgs args)
 {
-    string body = args.Message.Body.ToString();
-    Console.WriteLine(body);
-    _receivedMessages.Add(body);
-
-    // we can evaluate application logic and use that to determine how to settle the message.
-    await args.CompleteMessageAsync(args.Message);
+    _receivedMessages.Add(args.Message.Body.ToString());
+    return Task.CompletedTask;
 }
 ```
 

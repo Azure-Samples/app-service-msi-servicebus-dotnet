@@ -11,42 +11,25 @@ namespace WebAppServiceBus
     {
         private static List<string> _receivedMessages = new List<string>();
 
-        public static async Task InitializeAsync(ServiceBusConfiguration config)
+        public static async Task InitializeAsync(ServiceBusConfiguration config, ServiceBusClient client)
         {
-            var options = new ServiceBusProcessorOptions
-            {
-                AutoCompleteMessages = false,
-
-                MaxConcurrentCalls = 2
-            };
-
-            ServiceBusClient client = new ServiceBusClient(config.Namespace, new DefaultAzureCredential());
-            ServiceBusProcessor processor = client.CreateProcessor(config.Queue, options);
+            ServiceBusProcessor processor = client.CreateProcessor(config.Queue);
 
             processor.ProcessMessageAsync += MessageHandler;
             processor.ProcessErrorAsync += ErrorHandler;
 
-            async Task MessageHandler(ProcessMessageEventArgs args)
+            Task MessageHandler(ProcessMessageEventArgs args)
             {
-                string body = args.Message.Body.ToString();
-                Console.WriteLine(body);
-                _receivedMessages.Add(body);
-
-                // we can evaluate application logic and use that to determine how to settle the message.
-                await args.CompleteMessageAsync(args.Message);
+                _receivedMessages.Add(args.Message.Body.ToString());
+                return Task.CompletedTask;
             }
 
             Task ErrorHandler(ProcessErrorEventArgs args)
             {
-                // the error source tells me at what point in the processing an error occurred
-                Console.WriteLine(args.ErrorSource);
-                // the fully qualified namespace is available
-                Console.WriteLine(args.FullyQualifiedNamespace);
-                // as well as the entity path
-                Console.WriteLine(args.EntityPath);
-                Console.WriteLine(args.Exception.ToString());
+                _receivedMessages.Add($"Exception: \"{args.Exception.Message}\"");
                 return Task.CompletedTask;
             }
+
             await processor.StartProcessingAsync();
         }
 
