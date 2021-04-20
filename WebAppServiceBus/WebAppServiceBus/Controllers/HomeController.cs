@@ -13,7 +13,6 @@ namespace WebAppServiceBus.Controllers
     public class HomeController : Controller
     {
         public ServiceBusConfiguration Config { get; }
-
         public Task _initializeTask;
 
         public HomeController(IOptions<ServiceBusConfiguration> serviceBusConfig)
@@ -61,7 +60,6 @@ namespace WebAppServiceBus.Controllers
             }
 
             ServiceBusClient client = new ServiceBusClient(Config.Namespace, new DefaultAzureCredential());
-
             ServiceBusSender sender = client.CreateSender(Config.Queue);
             ServiceBusMessage message = new ServiceBusMessage(messageInfo.MessageToSend);
             await sender.SendMessageAsync(message).ConfigureAwait(false);
@@ -86,6 +84,7 @@ namespace WebAppServiceBus.Controllers
             {
                 messageInfo.MessagesReceived = "No messages from queue received yet!";
             }
+            
             return View("Index", messageInfo);
         }
     }

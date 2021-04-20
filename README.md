@@ -85,12 +85,10 @@ async Task MessageHandler(ProcessMessageEventArgs args)
     // we can evaluate application logic and use that to determine how to settle the message.
     await args.CompleteMessageAsync(args.Message);
 }
-
 ```
 
 ## Step 4: Update the Service Bus Namespace and Service Bus Queue names
 In the Web.config file, change the Service Bus Namespace and Queue to the ones you just created. Replace **ServiceBusNamespace** with the name of your Service Bus Namespace and **ServiceBusQueue** with the name of your Service Bus Queue.
-
 
 ## Step 5: Run the application on your local development machine
 When running your sample, the previously-configured ServiceBusClient will use the DefaultAzureCredential, which uses the developer's security context to get a token to authenticate to Service Bus. This removes the need to create a Service Bus shared access key and share it with the development team. It also prevents credentials from being checked in to source code. For local development, the DefaultAzureCredential will use **Visual Studio**, **Azure CLI**, or **Active Directory Integrated Authentication** to authenticate to Azure AD to get a token. That token will be used to both send and receive data from your Service Bus Queue.
