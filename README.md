@@ -46,8 +46,9 @@ To grant access:
 ## Step 3: Clone the repo 
 Clone the repo to your development machine. 
 
-The project has a relevant Nuget package:
+The project has two relevant Nuget packages:
 1. Azure.Identity - makes it easy to fetch access tokens for Service-to-Azure-Service authentication scenarios.
+2. Azure.Messaging.ServiceBus - contains methods for interacting with Service Bus. 
 
 ```C# Snippet:ServiceBusAuthConnString
 // Create a ServiceBusClient that will authenticate using MSI.
@@ -66,12 +67,10 @@ ServiceBusClient client = new ServiceBusClient(nameSpace, new DefaultAzureCreden
 ServiceBusSender sender = client.CreateSender(queueName);
 
 // create a message that we can send.
-ServiceBusMessage[] messages = new ServiceBusMessage[] {
-    new ServiceBusMessage(messageInfo.MessageToSend)
-};
+ServiceBusMessage message = new ServiceBusMessage(messageInfo.MessageToSend);
 
 // send the message
-await sender.SendMessageAsync(messages);
+await sender.SendMessageAsync(message);
 
 // create a processor that we can use to receive the message
 ServiceBusProcessor processor = client.CreateProcessor(queueName, options);
@@ -94,7 +93,7 @@ In the Web.config file, change the Service Bus Namespace and Queue to the ones y
 
 
 ## Step 5: Run the application on your local development machine
-When running your sample, it will need to understand how to connect and authorize with it. The easiest means for doing so is to use a connection string, which is created automatically when creating a Service Bus namespace. For local development, the ManagedServiceIdentityTokenProvider will use **Visual Studio**, **Azure CLI**, or **Active Directory Integrated Authentication** to authenticate to Azure AD to get a token. That token will be used to both send and receive data from your Service Bus Queue.
+When running your sample, the previously-configured ServiceBusClient will use the DefaultAzureCredential, which uses the developer's security context to get a token to authenticate to Service Bus. This removes the need to create a Service Bus shared access key and share it with the development team. It also prevents credentials from being checked in to source code. For local development, the DefaultAzureCredential will use **Visual Studio**, **Azure CLI**, or **Active Directory Integrated Authentication** to authenticate to Azure AD to get a token. That token will be used to both send and receive data from your Service Bus Queue.
 
 Visual Studio authentication will work if the following conditions are met:
  1. You have installed [Visual Studio 2017 v15.6](https://blogs.msdn.microsoft.com/visualstudio/2017/12/07/visual-studio-2017-version-15-6-preview/) or later.
@@ -118,7 +117,7 @@ Follow the steps in Step 2 used to grant yourself "Contributor" access to the Se
 
 ## Step 7: Deploy the Web App to Azure
 Use any of the methods outlined on [Deploy your app to Azure App Service](https://docs.microsoft.com/en-us/azure/app-service-web/web-sites-deploy) to publish the Web App to Azure. 
-After you deploy it, browse to the web app. You should be able to send and receive data on your Service Bus Namespace on the web page as you did when you locally deployed the web app in Step 5. 
+After you deploy it, browse to the web app. You should be able to send and receive data on your Service Bus Namespace on the web page as you did when you locally deployed the web app in Step 5. However, different from Step 5, the `ServiceBusClient` using the `DefaultAzureCredential` will use the web app's own Managed Service Identity (MSI) to authenticate to Service Bus instead of your local developer context. This did not require any code changes between local development and being published to Azure.
 
 ## Summary
 The web app was successfully able to send and receive data on your Service Bus Namespace using your developer account during development, and using MSI when deployed to Azure, without any code change between local development environment and Azure. 
@@ -126,4 +125,4 @@ As a result, you did not have to explicitly create and handle a Service Bus shar
 
 ## Troubleshooting
 
-Please see the [troubleshooting section](https://docs.microsoft.com/en-us/azure/key-vault/service-to-service-authentication#appauthentication-troubleshooting) of the AppAuthentication library documentation for troubleshooting of common issues.
+Please see the Azure.Identity [Readme](https://github.com/Azure/azure-sdk-for-net/blob/master/sdk/identity/Azure.Identity/README.md) for troubleshooting of common issues.

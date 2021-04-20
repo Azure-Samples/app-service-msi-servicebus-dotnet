@@ -48,7 +48,6 @@ namespace WebAppServiceBus
                 return Task.CompletedTask;
             }
             await processor.StartProcessingAsync();
-            Console.ReadKey();
         }
 
         public static List<string> GetReceivedMessages()

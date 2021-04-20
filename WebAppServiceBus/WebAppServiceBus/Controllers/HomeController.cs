@@ -14,9 +14,12 @@ namespace WebAppServiceBus.Controllers
     {
         public ServiceBusConfiguration Config { get; }
 
+        public Task _initializeTask;
+
         public HomeController(IOptions<ServiceBusConfiguration> serviceBusConfig)
         {
             Config = serviceBusConfig.Value;
+            _initializeTask =  ReceivedMessageStore.InitializeAsync(Config);
         }
 
         public IActionResult Index()
@@ -60,19 +63,17 @@ namespace WebAppServiceBus.Controllers
             ServiceBusClient client = new ServiceBusClient(Config.Namespace, new DefaultAzureCredential());
 
             ServiceBusSender sender = client.CreateSender(Config.Queue);
-            ServiceBusMessage[] messages = new ServiceBusMessage[] {
-                new ServiceBusMessage(messageInfo.MessageToSend)
-            };
-            await sender.SendMessagesAsync(messages);
-            await sender.CloseAsync();
+            ServiceBusMessage message = new ServiceBusMessage(messageInfo.MessageToSend);
+            await sender.SendMessageAsync(message).ConfigureAwait(false);
+            await sender.CloseAsync().ConfigureAwait(false);
 
-            await ReceivedMessageStore.InitializeAsync(Config);
+            await _initializeTask.ConfigureAwait(false);
             return RedirectToAction("Index");
 
         }
 
         [HttpPost]
-        public  ActionResult Receive()
+        public ActionResult Receive()
         {
             ServiceBusMessageData messageInfo = new ServiceBusMessageData();
 
