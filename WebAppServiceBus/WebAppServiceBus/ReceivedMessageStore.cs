@@ -1,7 +1,5 @@
 ﻿using Azure.Messaging.ServiceBus;
 using System.Collections.Generic;
-using System;
-using Azure.Identity;
 using System.Threading.Tasks;
 using WebAppServiceBus.Models;
 
@@ -20,13 +18,13 @@ namespace WebAppServiceBus
 
             Task MessageHandler(ProcessMessageEventArgs args)
             {
-                _receivedMessages.Add(args.Message.Body.ToString());
+                _receivedMessages.Add($"MessageId:{args.Message.MessageId}, Seq#:{args.Message.SequenceNumber}, data:{args.Message.Body}");
                 return Task.CompletedTask;
             }
 
             Task ErrorHandler(ProcessErrorEventArgs args)
             {
-                _receivedMessages.Add($"Exception: \"{args.Exception.Message}\"");
+                _receivedMessages.Add($"Exception: \"{args.Exception.Message}\" {args.EntityPath}");
                 return Task.CompletedTask;
             }
 

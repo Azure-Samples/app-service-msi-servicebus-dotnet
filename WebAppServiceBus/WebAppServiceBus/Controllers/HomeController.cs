@@ -14,7 +14,7 @@ namespace WebAppServiceBus.Controllers
     {
         public ServiceBusConfiguration Config { get; }
         public ServiceBusClient client;
-        private readonly Task startProcessingTask;
+        private readonly Task _startProcessingTask;
 
         public HomeController(IOptions<ServiceBusConfiguration> serviceBusConfig)
         {
@@ -22,7 +22,7 @@ namespace WebAppServiceBus.Controllers
 
             client = new ServiceBusClient(Config.Namespace, new DefaultAzureCredential());
 
-            startProcessingTask = ReceivedMessageStore.InitializeAsync(Config, client);
+            _startProcessingTask = ReceivedMessageStore.InitializeAsync(Config, client);
         }
 
         public IActionResult Index()
@@ -72,9 +72,9 @@ namespace WebAppServiceBus.Controllers
         }
 
         [HttpPost]
-        public ActionResult Receive()
+        public async Task<ActionResult> Receive()
         {
-            startProcessingTask.ConfigureAwait(false);
+            await _startProcessingTask.ConfigureAwait(false);
 
             ServiceBusMessageData messageInfo = new ServiceBusMessageData();
 

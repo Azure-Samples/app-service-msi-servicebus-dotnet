@@ -54,11 +54,7 @@ The project has two relevant Nuget packages:
 // Create a ServiceBusClient that will authenticate using MSI.
 string nameSpace = "<service_bus_namespace>";
 ServiceBusClient client = new ServiceBusClient(nameSpace, new DefaultAzureCredential());
-```
-
-The relevant code is in WebAppServiceBus/WebAppServiceBus/Controllers/HomeController.cs file. The constructor will initialize a ServiceBusProcessor that is responsible for processing the messages. The **Send** method will create an instance of a ServiceBusSender, and send a single message.
-
-```csharp    
+  
 string queueName = "<service_bus_queueName>";
 ServiceBusClient client = new ServiceBusClient(nameSpace, new DefaultAzureCredential());
 
@@ -77,7 +73,7 @@ ServiceBusProcessor processor = client.CreateProcessor(queueName, options);
 processor.ProcessMessageAsync += MessageHandler;
 async Task MessageHandler(ProcessMessageEventArgs args)
 {
-    _receivedMessages.Add(args.Message.Body.ToString());
+    _receivedMessages.Add($"MessageId:{args.Message.MessageId}, Seq#:{args.Message.SequenceNumber}, data:{args.Message.Body}");
     return Task.CompletedTask;
 }
 ```
