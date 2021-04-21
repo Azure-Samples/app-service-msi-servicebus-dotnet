@@ -54,11 +54,9 @@ The project has two relevant Nuget packages:
 // Create a ServiceBusClient that will authenticate using MSI.
 string nameSpace = "<service_bus_namespace>";
 ServiceBusClient client = new ServiceBusClient(nameSpace, new DefaultAzureCredential());
-  
-string queueName = "<service_bus_queueName>";
-ServiceBusClient client = new ServiceBusClient(nameSpace, new DefaultAzureCredential());
 
 // create the sender
+string queueName = "<service_bus_queueName>";
 ServiceBusSender sender = client.CreateSender(queueName);
 
 // create a message that we can send.
