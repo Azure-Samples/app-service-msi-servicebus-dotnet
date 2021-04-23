@@ -50,7 +50,7 @@ The project has two relevant Nuget packages:
 1. Azure.Identity - makes it easy to fetch access tokens for Service-to-Azure-Service authentication scenarios.
 2. Azure.Messaging.ServiceBus - contains methods for interacting with Service Bus. 
 
-The relevant code is in WebAppServiceBus/WebAppServiceBus/Controllers/HomeController.cs file. In the constructor for HomeController, a ServiceBusClient instance is created using the DefaultAzureCredential. A ServiceBusProcessor is started to start receiving messages from our queue. When the Send method is invoked, a message is sent to the queue. When the Receive method is invoked, a summary of the messages that have been received is displayed on the web page.
+The relevant code is in WebAppServiceBus/WebAppServiceBus/Controllers/HomeController.cs file. In the constructor for HomeController, a ServiceBusClient instance is created using the DefaultAzureCredential. A ServiceBusProcessor is started to start receiving messages from our queue. When the **Send** method is invoked, a message is sent to the queue. When the **Receive** method is invoked, a summary of the messages that have been received is displayed on the web page.
 
 ## Step 4: Update the Service Bus Namespace and Service Bus Queue names
 In the Web.config file, change the Service Bus Namespace and Queue to the ones you just created. Replace **ServiceBusNamespace** with the name of your Service Bus Namespace and **ServiceBusQueue** with the name of your Service Bus Queue.
