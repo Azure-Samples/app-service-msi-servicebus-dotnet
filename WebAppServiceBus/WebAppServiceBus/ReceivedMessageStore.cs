@@ -1,7 +1,5 @@
-﻿using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Primitives;
+﻿using Azure.Messaging.ServiceBus;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using WebAppServiceBus.Models;
 
@@ -9,30 +7,28 @@ namespace WebAppServiceBus
 {
     public static class ReceivedMessageStore
     {
-        private static QueueClient _receiveClient = null;
         private static List<string> _receivedMessages = new List<string>();
 
-        public static void Initialize(ServiceBusConfiguration config)
+        public static async Task InitializeAsync(ServiceBusConfiguration config, ServiceBusClient client)
         {
-            if (_receiveClient != null)
+            ServiceBusProcessor processor = client.CreateProcessor(config.Queue);
+
+            processor.ProcessMessageAsync += MessageHandler;
+            processor.ProcessErrorAsync += ErrorHandler;
+
+            Task MessageHandler(ProcessMessageEventArgs args)
             {
-                return;
+                _receivedMessages.Add($"MessageId:{args.Message.MessageId}, Seq#:{args.Message.SequenceNumber}, data:{args.Message.Body}");
+                return Task.CompletedTask;
             }
 
-            TokenProvider tokenProvider = TokenProvider.CreateManagedServiceIdentityTokenProvider();
+            Task ErrorHandler(ProcessErrorEventArgs args)
+            {
+                _receivedMessages.Add($"Exception: \"{args.Exception.Message}\" {args.EntityPath}");
+                return Task.CompletedTask;
+            }
 
-            _receiveClient = new QueueClient($"sb://{config.Namespace}.servicebus.windows.net/", config.Queue, tokenProvider, receiveMode: ReceiveMode.ReceiveAndDelete);
-            _receiveClient.RegisterMessageHandler(
-                (message, cancellationToken) =>
-                {
-                    _receivedMessages.Add($"MessageId:{message.MessageId}, Seq#:{message.SystemProperties.SequenceNumber}, data:{Encoding.UTF8.GetString(message.Body)}");
-                    return Task.CompletedTask;
-                },
-                (exceptionEvent) =>
-                {
-                    _receivedMessages.Add($"Exception: \"{exceptionEvent.Exception.Message}\" {exceptionEvent.ExceptionReceivedContext.EntityPath}");
-                    return Task.CompletedTask;
-                });
+            await processor.StartProcessingAsync();
         }
 
         public static List<string> GetReceivedMessages()
