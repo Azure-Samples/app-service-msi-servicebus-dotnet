@@ -19,9 +19,7 @@ namespace WebAppServiceBus.Controllers
         public HomeController(IOptions<ServiceBusConfiguration> serviceBusConfig)
         {
             Config = serviceBusConfig.Value;
-
             client = new ServiceBusClient(Config.Namespace, new DefaultAzureCredential());
-
             _startProcessingTask = ReceivedMessageStore.InitializeAsync(Config, client);
         }
 

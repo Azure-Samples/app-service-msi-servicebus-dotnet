@@ -50,31 +50,7 @@ The project has two relevant Nuget packages:
 1. Azure.Identity - makes it easy to fetch access tokens for Service-to-Azure-Service authentication scenarios.
 2. Azure.Messaging.ServiceBus - contains methods for interacting with Service Bus. 
 
-```C# Snippet:ServiceBusAuthConnString
-// Create a ServiceBusClient that will authenticate using MSI.
-string nameSpace = "<service_bus_namespace>";
-ServiceBusClient client = new ServiceBusClient(nameSpace, new DefaultAzureCredential());
-
-// create the sender
-string queueName = "<service_bus_queueName>";
-ServiceBusSender sender = client.CreateSender(queueName);
-
-// create a message that we can send.
-ServiceBusMessage message = new ServiceBusMessage(messageInfo.MessageToSend);
-
-// send the message
-await sender.SendMessageAsync(message);
-
-// create a processor that we can use to receive the message
-ServiceBusProcessor processor = client.CreateProcessor(queueName, options);
-
-processor.ProcessMessageAsync += MessageHandler;
-async Task MessageHandler(ProcessMessageEventArgs args)
-{
-    _receivedMessages.Add($"MessageId:{args.Message.MessageId}, Seq#:{args.Message.SequenceNumber}, data:{args.Message.Body}");
-    return Task.CompletedTask;
-}
-```
+The relevant code is in WebAppServiceBus/WebAppServiceBus/Controllers/HomeController.cs file. The **Send** method will create an instance of a ServiceBusClient, configured to use a DefaultAzureCredential. This ServiceBusClient's implementation uses the DefaultAzureCredential found in the Azure.Identity library. DefaultAzureCredential will follow a set number of different methods, depending on the environment, to get an access token. Please refer to the Azure.Identity [Readme](https://github.com/Azure/azure-sdk-for-net/blob/master/sdk/identity/Azure.Identity/README.md) to see more detail.
 
 ## Step 4: Update the Service Bus Namespace and Service Bus Queue names
 In the Web.config file, change the Service Bus Namespace and Queue to the ones you just created. Replace **ServiceBusNamespace** with the name of your Service Bus Namespace and **ServiceBusQueue** with the name of your Service Bus Queue.
