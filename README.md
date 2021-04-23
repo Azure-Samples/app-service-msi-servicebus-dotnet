@@ -1,8 +1,6 @@
 ---
 services: app-service, servicebus
 platforms: dotnet
-author: nonik0
----
 
 # Use Service Bus from App Service with Managed Service Identity
 
@@ -48,13 +46,13 @@ The project has two relevant Nuget packages:
 1. Azure.Identity - makes it easy to fetch access tokens for Service-to-Azure-Service authentication scenarios.
 2. Azure.Messaging.ServiceBus - contains methods for interacting with Service Bus. 
 
-The relevant code is in WebAppServiceBus/WebAppServiceBus/Controllers/HomeController.cs file. In the constructor for HomeController, a ServiceBusClient instance is created using the DefaultAzureCredential. A ServiceBusProcessor is started to start receiving messages from our queue. When the **Send** method is invoked, a message is sent to the queue. When the **Receive** method is invoked, a summary of the messages that have been received is displayed on the web page.
+The relevant code is in WebAppServiceBus/WebAppServiceBus/Controllers/HomeController.cs file. In the constructor for HomeController, a `ServiceBusClient` instance is created using the `DefaultAzureCredential`. `DefaultAzureCredential` will use different methods to authenticate to Azure AD based on the environment to get an access token. A `ServiceBusProcessor` is started to start receiving messages from our queue. When the **Send** method is invoked, a message is sent to the queue. When the **Receive** method is invoked, a summary of the messages that have been received is displayed on the web page.
 
 ## Step 4: Update the Service Bus Namespace and Service Bus Queue names
 In the Web.config file, change the Service Bus Namespace and Queue to the ones you just created. Replace **ServiceBusNamespace** with the name of your Service Bus Namespace and **ServiceBusQueue** with the name of your Service Bus Queue.
 
 ## Step 5: Run the application on your local development machine
-When running your sample, the previously-configured ServiceBusClient will use the DefaultAzureCredential, which uses the developer's security context to get a token to authenticate to Service Bus. This removes the need to create a Service Bus shared access key and share it with the development team. It also prevents credentials from being checked in to source code. For local development, the DefaultAzureCredential will use **Visual Studio**, **Azure CLI**, or **Active Directory Integrated Authentication** to authenticate to Azure AD to get a token. That token will be used to both send and receive data from your Service Bus Queue.
+When running your sample, the previously-configured `ServiceBusClient` will use the `DefaultAzureCredential`, which uses the developer's security context to get a token to authenticate to Service Bus. This removes the need to create a Service Bus shared access key and share it with the development team. It also prevents credentials from being checked in to source code. That token will be used to both send and receive data from your Service Bus Queue.
 
 Visual Studio authentication will work if the following conditions are met:
  1. You have installed [Visual Studio 2017 v15.6](https://blogs.msdn.microsoft.com/visualstudio/2017/12/07/visual-studio-2017-version-15-6-preview/) or later.
@@ -86,4 +84,4 @@ As a result, you did not have to explicitly create and handle a Service Bus shar
 
 ## Troubleshooting
 
-Please see the Azure.Identity [Readme](https://github.com/Azure/azure-sdk-for-net/blob/master/sdk/identity/Azure.Identity/README.md) for troubleshooting of common issues.
+Please see the Azure.Identity [Readme](https://github.com/Azure/azure-sdk-for-net/blob/master/sdk/identity/Azure.Identity/README.md) for more information about using Azure.Identity and troubleshooting of common authentication issues.
