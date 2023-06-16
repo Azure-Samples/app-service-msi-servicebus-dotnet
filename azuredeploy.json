@@ -41,7 +41,7 @@
             "metadata": {
                 "description": "Name of the Service Bus Queue"
             }
-        },
+        }
     },
     "variables": {
         "hostingPlanName": "[concat('hostingplan', uniqueString(resourceGroup().id))]",
